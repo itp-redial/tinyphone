@@ -3,7 +3,7 @@
 require 'rubygems'
 require 'ruby-agi'
 require 'socket' 
-require '/root/node_workspace/digitstream_eagi/eagi_reader.rb'
+require '/root/node_workspace/tinyphone/tinyphone_eagi/eagi_reader.rb'
 
 agi = AGI.new
 @uniqueid = agi.uniqueid

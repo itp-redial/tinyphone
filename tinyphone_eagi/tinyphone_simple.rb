@@ -17,7 +17,7 @@ agi.stream_file("vm-extension")
 while looping
     result = agi.wait_for_digit(-1) # wait forever
 	if result.digit
-        s.puts "#{result.digit},#{agi.callerid}"
+        s.write "#{result.digit}"
 	else #hangup broke the pending AGI request
         looping = false
     end
