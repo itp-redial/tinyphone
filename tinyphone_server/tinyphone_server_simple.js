@@ -13,8 +13,7 @@ var AGI_PORT = 12001;
 
 /** Remote clients send no info to this server.
  * all they do is receive byte representations of digits.
- * 0-9 = 0-9 on the keypad
- * 10=* , 11=#, 12-15=A-D */
+ * (0-9, #, *) on the phone's keypad as ascii bytes*/
 
 //remote screens or physical objects
 var remoteClients = [];
