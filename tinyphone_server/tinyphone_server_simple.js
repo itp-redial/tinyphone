@@ -8,7 +8,7 @@ var AGI_PORT = 12001;
 
 /**
  * AGI will only send key presses, and that's it.
- * There's no identifying charistics, just raw press events.
+ * There's no identifying characteristics, just raw press events.
 */
 
 /** Remote clients send no info to this server.
