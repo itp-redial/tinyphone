@@ -1,12 +1,17 @@
-var agi_net = require('net');
-var remote_net = require('net');
-var io = require('socket.io').listen(12003);
 var REMOTE_PORT=12002;
-
+var SOCKETIO_PORT=12003;
 var AGI_HOST = '127.0.0.1';
 var AGI_PORT = 12001;
-//reduce verbosity on socket.io
-io.set('log level', 1);
+
+var agi_net = require('net');
+var remote_net = require('net');
+var io = require('socket.io').listen(SOCKETIO_PORT);
+
+//set up socket.io
+io.enable('browser client minification');  // send minified client
+io.enable('browser client etag');          // apply etag caching logic based on version number
+io.enable('browser client gzip');          // gzip the file
+io.set('log level', 1);                    // reduce logging
 /**
  * The very simple protocol has 3 attributes:
  * id = unique id for call
@@ -34,7 +39,7 @@ var callers = {};
 //remote screens or physical objects
 var remoteClients = {};
 //remote screens or physical objects
-var webClients = {};
+//var webClients = {};
 remote_net.createServer(function(sock){
   sock.setEncoding('ascii');
   console.log('CONNECTED REMOTE CLIENT: ' + sock.remoteAddress +':'+ sock.remotePort);
@@ -98,6 +103,7 @@ agi_net.createServer(function(sock) {
                 agiBuffer = agiBuffer + data.charAt(i);   
             }
         }
+        
         function handleMessage (buf){
             var attr = buf.split(',');
             var message = {};
@@ -114,6 +120,7 @@ agi_net.createServer(function(sock) {
             }
             //console.log('DATA ' + sock.remoteAddress + ': ' + JSON.stringify(message));
         }
+        
         function newCaller(message){
             var phoneNumbers=message.value.split("|");
             var caller = {  id:message.id,
@@ -125,14 +132,17 @@ agi_net.createServer(function(sock) {
             message.value = phoneNumbers[0];
             sendRemote(message,message.id);
         }
+        
         function keyPress(message){
             sendRemote(message,message.id);
             //console.log("key press! " + JSON.stringify(message));   
         }
+        
         function audioLevel(message){
             sendRemote(message,message.id);
             //console.log("audio level! " + JSON.stringify(message));   
         }
+        
         function hangup(message){
             var caller = callers[message.id];
             caller.socket.destroy();
@@ -143,16 +153,29 @@ agi_net.createServer(function(sock) {
         
         function sendRemote(message, caller_uid){
             var msgString = JSON.stringify(message);
-          caller = callers[caller_uid];
+            var caller = callers[caller_uid];
           //send net clients
-          for (key in remoteClients){
-            remoteClient = remoteClients[key];
-            if (caller.numCalled == remoteClient.phoneNumber){
-                remoteClient.socket.write(msgString+remoteClient.termByte);
+            for (key in remoteClients){
+                var remoteClient = remoteClients[key];
+                if (caller.numCalled == remoteClient.phoneNumber){
+                    remoteClient.socket.write(msgString+remoteClient.termByte);
+                }
             }
-          }
-          //send socket.io clients
-        io.sockets.emit(message.event, message);
+            //send socket.io clients
+            io.sockets.clients().forEach(function (socket) { 
+                socket.get('phoneNumber', function (err, phoneNumber) {
+                    if(phoneNumber == caller.numCalled){
+                        if (message.event == 'audio_level'){
+                            socket.volatile.emit(message.event,message);
+                        } else {
+                            socket.emit(message.event,message);
+                        }
+                    } else {
+                     console.log("unknown screen for number "+caller.numCalled);   
+                    }
+                });
+            });
+        //io.sockets.emit(message.event, message);
         }
         
     });
@@ -166,6 +189,8 @@ agi_net.createServer(function(sock) {
 //set up socket.io
 io.sockets.on('connection', function (socket) {
   socket.on('setup', function(info) {
+      socket.set('phoneNumber', info.phoneNumber, function () {});
+      socket.set('id', info.id, function () {});
     console.log("just got setup info: "+JSON.stringify(info));
   });
   socket.on('disconnect', function() {
