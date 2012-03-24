@@ -1,11 +1,12 @@
 var agi_net = require('net');
 var remote_net = require('net');
-
+var io = require('socket.io').listen(12003);
 var REMOTE_PORT=12002;
 
 var AGI_HOST = '127.0.0.1';
 var AGI_PORT = 12001;
-
+//reduce verbosity on socket.io
+io.set('log level', 1);
 /**
  * The very simple protocol has 3 attributes:
  * id = unique id for call
@@ -32,6 +33,8 @@ var remoteBuffer="";
 var callers = {};
 //remote screens or physical objects
 var remoteClients = {};
+//remote screens or physical objects
+var webClients = {};
 remote_net.createServer(function(sock){
   sock.setEncoding('ascii');
   console.log('CONNECTED REMOTE CLIENT: ' + sock.remoteAddress +':'+ sock.remotePort);
@@ -116,35 +119,40 @@ agi_net.createServer(function(sock) {
             var caller = {  id:message.id,
                             callerNumber:phoneNumbers[0],
                             numCalled:phoneNumbers[1] };
-            //console.log("new caller! " + JSON.stringify(caller));
+            console.log("new caller! " + JSON.stringify(caller));
             caller["socket"] = sock;
             callers[caller.id]=caller;
-            sendRemote(JSON.stringify(message),message.id);
+            message.value = phoneNumbers[0];
+            sendRemote(message,message.id);
         }
         function keyPress(message){
-            sendRemote(JSON.stringify(message),message.id);
+            sendRemote(message,message.id);
             //console.log("key press! " + JSON.stringify(message));   
         }
         function audioLevel(message){
-            sendRemote(JSON.stringify(message),message.id);
+            sendRemote(message,message.id);
             //console.log("audio level! " + JSON.stringify(message));   
         }
         function hangup(message){
             var caller = callers[message.id];
             caller.socket.destroy();
-            sendRemote(JSON.stringify(message),message.id);
+            sendRemote(message,message.id);
             delete callers[message.id];
             //console.log("hangup! " + JSON.stringify(message));
         }
         
         function sendRemote(message, caller_uid){
+            var msgString = JSON.stringify(message);
           caller = callers[caller_uid];
+          //send net clients
           for (key in remoteClients){
             remoteClient = remoteClients[key];
             if (caller.numCalled == remoteClient.phoneNumber){
-                remoteClient.socket.write(message+remoteClient.termByte);
+                remoteClient.socket.write(msgString+remoteClient.termByte);
             }
           }
+          //send socket.io clients
+        io.sockets.emit(message.event, message);
         }
         
     });
@@ -155,5 +163,14 @@ agi_net.createServer(function(sock) {
     });
     
 }).listen(AGI_PORT, AGI_HOST);
+//set up socket.io
+io.sockets.on('connection', function (socket) {
+  socket.on('setup', function(info) {
+    console.log("just got setup info: "+JSON.stringify(info));
+  });
+  socket.on('disconnect', function() {
+    console.log("socket.io client disconnected");
+  });
+});
 
 console.log('Server listening for AGI connections on ' + AGI_HOST +':'+ AGI_PORT);
