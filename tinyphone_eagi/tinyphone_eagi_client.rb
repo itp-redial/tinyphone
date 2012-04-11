@@ -24,7 +24,15 @@ end
 Signal.trap(0, proc { send_hangup(1) })
 
 #send new caller message
-@sock.puts "id:#{@uniqueid},event:new_call,value:#{agi.callerid}|#{agi.dnid}"
+callerid = agi.calleridnumber
+if !callerid
+    callerid = agi.callerid
+end
+#get rid of plus, if it's there
+if callerid[0] == '+'[0]
+    callerid.slice!(0)
+end
+@sock.puts "id:#{@uniqueid},event:new_call,value:#{callerid}|#{agi.dnid}"
 #start eagi audio parsing in new thread if EAGI is activated
 if (agi.enhanced == '1.0')
 	Thread.new {
