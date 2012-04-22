@@ -2,7 +2,8 @@ var REMOTE_PORT=12002;
 var SOCKETIO_PORT=12003;
 var AGI_HOST = '127.0.0.1';
 var AGI_PORT = 12001;
-
+var version = "1.0b1"
+console.log("TINYPHONE SERVER "+version);
 var agi_net = require('net');
 var remote_net = require('net');
 var io = require('socket.io').listen(SOCKETIO_PORT);
@@ -20,7 +21,7 @@ io.set('log level', 1);                    // reduce logging
  * three attributes are comma delimted, name and value are colon delimited.
  * message is CR delimited.
  * There are 4 event types- new_call, keypress, audio_level, and hangup:
- * id:133238984.24,event:new_call,value:16466429290
+ * id:133238984.24,event:new_call,value:16466429290|13605551212|(optional args, pipe delimited)
  * id:133238984.24,event:keypress,value:*
  * id:133238984.24,event:audio_level,value:56
  * id:133238984.24,event:hangup,value:0
@@ -118,18 +119,28 @@ agi_net.createServer(function(sock) {
              case "hangup": hangup(message); break;
              default: console.log('UNKNOWN MESSAGE: ' + JSON.stringify(message)); break;
             }
-            //console.log('DATA ' + sock.remoteAddress + ': ' + JSON.stringify(message));
+        //    console.log('DATA ' + sock.remoteAddress + ': ' + JSON.stringify(message));
         }
         
         function newCaller(message){
-            var phoneNumbers=message.value.split("|");
+            var phoneNumbersAndArgs=message.value.split("|");
+            var arg = [];
+            for (var i = 2; i < phoneNumbersAndArgs.length; i++){
+              arg.push(phoneNumbersAndArgs[i]);   
+            }
             var caller = {  id:message.id,
-                            callerNumber:phoneNumbers[0],
-                            numCalled:phoneNumbers[1] };
-            console.log("new caller! " + JSON.stringify(caller));
+                            callerNumber:phoneNumbersAndArgs[0],
+                            numCalled:phoneNumbersAndArgs[1],
+                            args:arg};
+            //console.log("new caller! " + JSON.stringify(caller));
             caller["socket"] = sock;
             callers[caller.id]=caller;
-            message.value = phoneNumbers[0];
+            //rebuild the value with the caller's number and any args
+            var newCallValue = phoneNumbersAndArgs[0];
+            if (arg.length > 0){
+              newCallValue = newCallValue+"|"+arg.join("|");   
+            }
+            message.value = newCallValue;
             sendRemote(message,message.id);
         }
         

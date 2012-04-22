@@ -32,7 +32,14 @@ end
 if callerid[0] == '+'[0]
     callerid.slice!(0)
 end
-@sock.puts "id:#{@uniqueid},event:new_call,value:#{callerid}|#{agi.dnid}"
+argsValue = ""
+#don't allow reserved characters through.
+reserved_chars=/[{,|:}]/
+#add args to value, if there's any
+ARGV.each do |arg|
+    argsValue << "|" + arg.gsub(reserved_chars,"")
+end
+@sock.puts "id:#{@uniqueid},event:new_call,value:#{callerid}|#{agi.dnid}#{argsValue}"
 #start eagi audio parsing in new thread if EAGI is activated
 if (agi.enhanced == '1.0')
 	Thread.new {
