@@ -47,7 +47,7 @@ For convenience, the instructions will assume that you are in the tinyphone\_ser
     cd tinyphone/tinyphone_server
 By default, Tinyphone will accept local AGI connections on port 12001, Remote TCP connections on 12002, and Socket.io connections on port 12003. For now, the only way to change the ports is to edit tinyphone_server.js. Hopefully in the near future I’ll add a config file.
 
-You can temporarily run Tinyphone Server by running “node tinyphone_server.js” but I would recommend using **Forever**. Forever is a nifty app that will run Node apps as a background service.
+You can temporarily run Tinyphone Server by running **“node tinyphone_server.js”** but I would recommend using [**Forever**](https://github.com/nodejitsu/forever). Forever is a nifty app that will run Node apps as a background service.
 
     npm install forever -g
 
