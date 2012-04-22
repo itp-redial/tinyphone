@@ -84,7 +84,9 @@ The ruby-agi gem is broken on Ubuntu systems, so you may need to patch it. You m
 
 
 **Passing arguments to Tinyphone apps:**
+
 The Tinyphone AGI script will pass along any arguments to the tinyphone clients, and will be part of the new_caller event in tinyphone apps.  You can pass in multiple arguments and they will be available as an array to tinyphone clients.
+
     [tinyphone]
     exten => s,1,Set(message=Hello tinyphone!)
     ;the value of variable "message" will get sent to the tinyphone clients.
