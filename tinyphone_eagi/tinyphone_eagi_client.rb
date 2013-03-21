@@ -1,9 +1,9 @@
-#!/usr/bin/ruby
-
+#!/usr/bin/env ruby
 require 'rubygems'
 require 'ruby-agi'
-require 'socket' 
-require '/root/node_workspace/tinyphone/tinyphone_eagi/eagi_reader.rb'
+require 'socket'
+require 'uri'
+require_relative 'eagi_reader.rb'
 
 agi = AGI.new
 @uniqueid = agi.uniqueid
@@ -37,7 +37,7 @@ argsValue = ""
 reserved_chars=/[{,|:}]/
 #add args to value, if there's any
 ARGV.each do |arg|
-    argsValue << "|" + arg.gsub(reserved_chars,"")
+    argsValue << "|" + URI.escape(arg.gsub(reserved_chars,""))
 end
 @sock.puts "id:#{@uniqueid},event:new_call,value:#{callerid}|#{agi.dnid}#{argsValue}"
 #start eagi audio parsing in new thread if EAGI is activated
