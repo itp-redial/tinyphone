@@ -14,7 +14,6 @@
 var sys = require('sys');
 var events = require('events');
 var agi_net = require('net');
-var agiBuffer = "";
 var callers = {};
 
 function TinyphoneAGI() {
@@ -34,19 +33,8 @@ TinyphoneAGI.prototype.start = function(agi_host, agi_port) {
         var remotePort = sock.remotePort;
         // We have a connection - a socket object is assigned to the connection automatically
         console.log('CONNECTED AGI CLIENT: ' + remoteAddress + ':' + remotePort);
-
-        // Add a 'data' event handler to this instance of socket
-        sock.on('data', function(data) {
-            for (var i = 0; i < data.length; i++) {
-                if (data.charAt(i) == '\n') {
-                    handleMessage(agiBuffer);
-                    agiBuffer = "";
-                }
-                else {
-                    agiBuffer = agiBuffer + data.charAt(i);
-                }
-            }
-
+		var call_id = null;
+		var agiBuffer = "";
             function handleMessage(buf) {
                 var attr = buf.split(',');
                 var message = {};
@@ -56,6 +44,7 @@ TinyphoneAGI.prototype.start = function(agi_host, agi_port) {
                 }
                 switch (message.event) {
                 case "new_call":
+                	call_id=message.id;
                     newCaller(message);
                     break;
                 case "keypress":
@@ -65,6 +54,7 @@ TinyphoneAGI.prototype.start = function(agi_host, agi_port) {
                     audioLevel(message);
                     break;
                 case "hangup":
+                	call_id = null;
                     hangup(message);
                     break;
                 default:
@@ -109,8 +99,8 @@ TinyphoneAGI.prototype.start = function(agi_host, agi_port) {
             }
 
             function hangup(message) {
-                sendRemote(message, message.id);
                 var caller = callers[message.id];
+                sendRemote(message, message.id);
                 if (caller != null){
                     if (caller.socket != null){
                 		caller.socket.destroy();
@@ -133,12 +123,32 @@ TinyphoneAGI.prototype.start = function(agi_host, agi_port) {
                 	console.log("[sendRemote] caller is null.  discarding message "+ JSON.stringify(message));
                 }
             }
-
+        // Add a 'data' event handler to this instance of socket
+        sock.on('data', function(data) {
+            for (var i = 0; i < data.length; i++) {
+                if (data.charAt(i) == '\n') {
+                    handleMessage(agiBuffer);
+                    agiBuffer = "";
+                }
+                else {
+                    agiBuffer = agiBuffer + data.charAt(i);
+                }
+            }
         });
 
         // Add a 'close' event handler to this instance of socket
         sock.on('close', function(data) {
             console.log('CLOSED AGI CLIENT: ' + remoteAddress + ' ' + remotePort);
+            if (call_id != null){
+            	//we didn't receive hangup event?
+            	console.log("call_id is not null.  sending hangup event for "+call_id);
+            	var message = {
+            		"id":call_id,
+            		"event":"hangup",
+            		"value":"0"
+            	};
+            	hangup(message);
+            }
         });
 
     }).listen(agi_port, agi_host);
