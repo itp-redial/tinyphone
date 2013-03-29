@@ -109,17 +109,29 @@ TinyphoneAGI.prototype.start = function(agi_host, agi_port) {
             }
 
             function hangup(message) {
-                var caller = callers[message.id];
-                caller.socket.destroy();
                 sendRemote(message, message.id);
-                delete callers[message.id];
+                var caller = callers[message.id];
+                if (caller != null){
+                    if (caller.socket != null){
+                		caller.socket.destroy();
+                	} else {
+                		console.log("[hangup] caller socket is null!");
+                	}
+                	delete callers[message.id];
+                } else {
+                	console.log("[hangup] caller is null! ");
+                }
                 //console.log("hangup! " + JSON.stringify(message));
             }
 
             function sendRemote(message, caller_uid) {
                // var msgString = JSON.stringify(message);
                 var caller = callers[caller_uid];
-                self.emit("agi_event", message, caller);
+                if (caller != null){
+                	self.emit("agi_event", message, caller);
+                } else {
+                	console.log("[sendRemote] caller is null.  discarding message "+ JSON.stringify(message));
+                }
             }
 
         });
