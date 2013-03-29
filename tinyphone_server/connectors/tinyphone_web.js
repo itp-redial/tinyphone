@@ -28,7 +28,7 @@ TinyphoneWeb.prototype.start = function(web_port) {
             console.log("socket.io client disconnected");
         });
     });
-
+	console.log("Server listening for remote Web socket.io connections on "+web_port);
 }
 
 TinyphoneWeb.prototype.send = function(caller, message) {

@@ -10,7 +10,14 @@ var AGI_PORT = config.agi_port || 12001;
 var SMS_PORT = config.sms_port || 12004;
 var SMS_RESPONSE = config.sms_response || null;
 var version = "1.0b3";
-console.log("TINYPHONE SERVER " + version);
+console.log(" _____ _                   _                      ");
+console.log("/__   (_)_ __  _   _ _ __ | |__   ___  _ __   ___ ");
+console.log("  / /\\/ | '_ \\| | | | '_ \\| '_ \\ / _ \\| '_ \\ / _ \\");
+console.log(" / /  | | | | | |_| | |_) | | | | (_) | | | |  __/");
+console.log(" \\/   |_|_| |_|\\__, | .__/|_| |_|\\___/|_| |_|\\___|");
+console.log("              |___/|_|                            ");
+
+console.log("Version " + version);
 
 if (enable_agi_connections) {
     var agi_net = require('./connectors/tinyphone_agi.js');

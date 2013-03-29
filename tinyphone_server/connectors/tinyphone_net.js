@@ -12,7 +12,6 @@ var remote_net = require('net');
 
 //remote screens or physical objects
 var remoteClients = {};
-var remoteBuffer = "";
 
 function TinyphoneNet() {
     if (this instanceof TinyphoneNet === false) {
@@ -26,6 +25,7 @@ sys.inherits(TinyphoneNet, events.EventEmitter);
 TinyphoneNet.prototype.start = function(net_port) {
     var self = this;
     remote_net.createServer(function(sock) {
+    	var remoteBuffer = "";
         sock.setEncoding('ascii');
         var remoteAddress = sock.remoteAddress;
         var remotePort = sock.remotePort;
