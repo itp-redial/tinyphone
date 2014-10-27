@@ -1,5 +1,5 @@
-#!/usr/bin/env ruby
-require 'rubygems'
+#!/usr/local/rvm/rubies/ruby-2.0.0-p576/bin/ruby
+
 require 'ruby-agi'
 require 'socket'
 require 'uri'
