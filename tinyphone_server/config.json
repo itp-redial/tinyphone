@@ -1,11 +1,11 @@
 {
+    "enable_agi_connections":true,
+    "agi_host":"127.0.0.1",
+    "agi_port":12001,
     "enable_net_connections":true,
     "net_port":12002,
     "enable_web_connections":true,
     "web_port":12003,
-    "enable_agi_connections":true,
-    "agi_host":"127.0.0.1",
-    "agi_port":12001,
     "enable_sms_connections":true,
     "sms_port":12004,
     "sms_response":"Tinyphone thanks you for your message!"
