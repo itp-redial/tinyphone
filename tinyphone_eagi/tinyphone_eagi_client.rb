@@ -1,4 +1,4 @@
-#!/usr/local/rvm/rubies/ruby-2.0.0-p576/bin/ruby
+#!/usr/bin/env ruby
 
 require 'ruby-agi'
 require 'socket'
